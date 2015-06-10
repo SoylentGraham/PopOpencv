@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		BF06DEF41B28F908006F241F /* TChannelFork.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF06DEF21B28F908006F241F /* TChannelFork.cpp */; };
+		BF06DEF71B28F928006F241F /* SoyAssert.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF06DEF51B28F928006F241F /* SoyAssert.cpp */; };
 		FB50C04F1A6ABD480011A9D9 /* memheap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FB50C04D1A6ABD480011A9D9 /* memheap.cpp */; };
 		FB50C0521A6AC0980011A9D9 /* TFeatureBinRing.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FB50C0501A6AC0980011A9D9 /* TFeatureBinRing.cpp */; };
 		FB63E51A1A71C3E9002C59BE /* SoyRingArray.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FB63E5181A71C3E9002C59BE /* SoyRingArray.cpp */; };
@@ -96,6 +98,10 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		BF06DEF21B28F908006F241F /* TChannelFork.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TChannelFork.cpp; path = src/TChannelFork.cpp; sourceTree = "<group>"; };
+		BF06DEF31B28F908006F241F /* TChannelFork.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TChannelFork.h; path = src/TChannelFork.h; sourceTree = "<group>"; };
+		BF06DEF51B28F928006F241F /* SoyAssert.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SoyAssert.cpp; path = src/SoyAssert.cpp; sourceTree = "<group>"; };
+		BF06DEF61B28F928006F241F /* SoyAssert.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SoyAssert.h; path = src/SoyAssert.h; sourceTree = "<group>"; };
 		FB50C04A1A6ABD480011A9D9 /* array.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = array.hpp; path = src/array.hpp; sourceTree = "<group>"; };
 		FB50C04B1A6ABD480011A9D9 /* bufferarray.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = bufferarray.hpp; path = src/bufferarray.hpp; sourceTree = "<group>"; };
 		FB50C04C1A6ABD480011A9D9 /* HeapArray.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = HeapArray.hpp; path = src/HeapArray.hpp; sourceTree = "<group>"; };
@@ -344,6 +350,8 @@
 			children = (
 				FB50C04A1A6ABD480011A9D9 /* array.hpp */,
 				FB50C04B1A6ABD480011A9D9 /* bufferarray.hpp */,
+				BF06DEF51B28F928006F241F /* SoyAssert.cpp */,
+				BF06DEF61B28F928006F241F /* SoyAssert.h */,
 				FB50C04C1A6ABD480011A9D9 /* HeapArray.hpp */,
 				FB50C04D1A6ABD480011A9D9 /* memheap.cpp */,
 				FB50C04E1A6ABD480011A9D9 /* MemHeap.hpp */,
@@ -400,6 +408,8 @@
 				FB8A069E1A2E6AF80099596C /* TChannel.h */,
 				FB8A069F1A2E6AF80099596C /* TChannelFile.cpp */,
 				FB50C0501A6AC0980011A9D9 /* TFeatureBinRing.cpp */,
+				BF06DEF21B28F908006F241F /* TChannelFork.cpp */,
+				BF06DEF31B28F908006F241F /* TChannelFork.h */,
 				FB50C0511A6AC0980011A9D9 /* TFeatureBinRing.h */,
 				FB8A06A01A2E6AF80099596C /* TChannelFile.h */,
 				FB8A06A11A2E6AF80099596C /* TChannelPipe.cpp */,
@@ -573,6 +583,7 @@
 				FB8A06671A2E5A7C0099596C /* SoyTime.cpp in Sources */,
 				FB8A06ED1A2E6B520099596C /* AssertException.cpp in Sources */,
 				FB8A06661A2E5A7C0099596C /* SoyThread.cpp in Sources */,
+				BF06DEF41B28F908006F241F /* TChannelFork.cpp in Sources */,
 				FB8A06971A2E6AB50099596C /* TProtocol.cpp in Sources */,
 				FB8A06641A2E5A7C0099596C /* SoyString.cpp in Sources */,
 				FB8A069B1A2E6AB50099596C /* TProtocolWebSocket.cpp in Sources */,
@@ -584,6 +595,7 @@
 				FB8A06561A2E5A7C0099596C /* SoyEvent.cpp in Sources */,
 				FB8A06981A2E6AB50099596C /* TProtocolCli.cpp in Sources */,
 				FB8A07101A2E6B520099596C /* XmlTestReporter.cpp in Sources */,
+				BF06DEF71B28F928006F241F /* SoyAssert.cpp in Sources */,
 				FB8A065E1A2E5A7C0099596C /* SoyPng.cpp in Sources */,
 				FB6650CD1A56FD8600DF0A12 /* SoyDebug.mm in Sources */,
 				FB8A06551A2E5A7C0099596C /* SoyDebug.cpp in Sources */,

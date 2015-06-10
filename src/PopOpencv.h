@@ -7,12 +7,12 @@
 
 
 
-class TPopOpencv : public TJobHandler, public TChannelManager
+class TPopOpencv : public TJobHandler, public TPopJobHandler, public TChannelManager
 {
 public:
 	TPopOpencv();
 	
-	virtual void	AddChannel(std::shared_ptr<TChannel> Channel) override;
+	virtual bool	AddChannel(std::shared_ptr<TChannel> Channel) override;
 
 	void			OnExit(TJobAndChannel& JobAndChannel);
 	void			OnGetFeature(TJobAndChannel& JobAndChannel);

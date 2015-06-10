@@ -10,14 +10,16 @@
 #include <SoyString.h>
 #include <TFeatureBinRing.h>
 #include <SortArray.h>
-#include <TChannelLiteral.h>
+#include <TChannelFile.h>
 #include <opencv2/opencv.hpp>
 
 
 
 
 
-TPopOpencv::TPopOpencv()
+TPopOpencv::TPopOpencv() :
+	TJobHandler		( static_cast<TChannelManager&>(*this) ),
+	TPopJobHandler	( static_cast<TPopJobHandler&>(*this) )
 {
 	cv::Mat Mat;
 	
@@ -47,12 +49,12 @@ TPopOpencv::TPopOpencv()
 	AddJobHandler("findinterestingfeatures", FindInterestingFeaturesTraits, *this, &TPopOpencv::OnFindInterestingFeatures );
 }
 
-void TPopOpencv::AddChannel(std::shared_ptr<TChannel> Channel)
+bool TPopOpencv::AddChannel(std::shared_ptr<TChannel> Channel)
 {
-	TChannelManager::AddChannel( Channel );
-	if ( !Channel )
-		return;
+	if ( !TChannelManager::AddChannel( Channel ) )
+		return false;
 	TJobHandler::BindToChannel( *Channel );
+	return true;
 }
 
 
@@ -465,121 +467,43 @@ void TPopOpencv::OnNewFrame(TJobAndChannel& JobAndChannel)
 
 
 
-//	horrible global for lambda
-std::shared_ptr<TChannel> gStdioChannel;
-std::shared_ptr<TChannel> gCaptureChannel;
-
 
 
 TPopAppError::Type PopMain(TJobParams& Params)
 {
-	std::cout << Params << std::endl;
-	
 	TPopOpencv App;
 
-	auto CommandLineChannel = std::shared_ptr<TChan<TChannelLiteral,TProtocolCli>>( new TChan<TChannelLiteral,TProtocolCli>( SoyRef("cmdline") ) );
 	
 	//	create stdio channel for commandline output
-	gStdioChannel = CreateChannelFromInputString("std:", SoyRef("stdio") );
+	auto StdioChannel = CreateChannelFromInputString("std:", SoyRef("stdio") );
 	auto HttpChannel = CreateChannelFromInputString("http:8080-8090", SoyRef("http") );
-	auto WebSocketChannel = CreateChannelFromInputString("ws:json:9090-9099", SoyRef("websock") );
-//	auto WebSocketChannel = CreateChannelFromInputString("ws:cli:9090-9099", SoyRef("websock") );
-	auto SocksChannel = CreateChannelFromInputString("cli:7090-7099", SoyRef("socks") );
 	
-	
-	App.AddChannel( CommandLineChannel );
-	App.AddChannel( gStdioChannel );
+	App.AddChannel( StdioChannel );
 	App.AddChannel( HttpChannel );
-	App.AddChannel( WebSocketChannel );
-	App.AddChannel( SocksChannel );
-
+	
+	
+	//	bootup commands via a channel
+	std::shared_ptr<TChannel> BootupChannel( new TChan<TChannelFileRead,TProtocolCli>( SoyRef("Bootup"), "bootup.txt" ) );
+	
+	//	display reply to stdout
 	//	when the commandline SENDs a command (a reply), send it to stdout
 	auto RelayFunc = [](TJobAndChannel& JobAndChannel)
 	{
-		if ( !gStdioChannel )
-			return;
-		TJob Job = JobAndChannel;
-		Job.mChannelMeta.mChannelRef = gStdioChannel->GetChannelRef();
-		Job.mChannelMeta.mClientRef = SoyRef();
-		gStdioChannel->SendCommand( Job );
+		std::Debug << JobAndChannel.GetJob().mParams << std::endl;
 	};
-	CommandLineChannel->mOnJobSent.AddListener( RelayFunc );
+	//BootupChannel->mOnJobRecieved.AddListener( RelayFunc );
+	BootupChannel->mOnJobSent.AddListener( RelayFunc );
+	BootupChannel->mOnJobLost.AddListener( RelayFunc );
 	
-	//	connect to another app, and subscribe to frames
-	bool CreateCaptureChannel = false;
-	if ( CreateCaptureChannel )
-	{
-		auto CaptureChannel = CreateChannelFromInputString("cli://localhost:7070", SoyRef("capture") );
-		gCaptureChannel = CaptureChannel;
-		CaptureChannel->mOnJobRecieved.AddListener( RelayFunc );
-		App.AddChannel( CaptureChannel );
-		
-		//	send commands from stdio to new channel
-		auto SendToCaptureFunc = [](TJobAndChannel& JobAndChannel)
-		{
-			TJob Job = JobAndChannel;
-			Job.mChannelMeta.mChannelRef = gStdioChannel->GetChannelRef();
-			Job.mChannelMeta.mClientRef = SoyRef();
-			gCaptureChannel->SendCommand( Job );
-		};
-		gStdioChannel->mOnJobRecieved.AddListener( SendToCaptureFunc );
-		
-		auto StartSubscription = [](TChannel& Channel)
-		{
-			TJob GetFrameJob;
-			GetFrameJob.mChannelMeta.mChannelRef = Channel.GetChannelRef();
-			//GetFrameJob.mParams.mCommand = "subscribenewframe";
-			//GetFrameJob.mParams.AddParam("serial", "isight" );
-			GetFrameJob.mParams.mCommand = "getframe";
-			GetFrameJob.mParams.AddParam("serial", "isight" );
-			GetFrameJob.mParams.AddParam("memfile", "1" );
-			Channel.SendCommand( GetFrameJob );
-		};
-		
-		CaptureChannel->mOnConnected.AddListener( StartSubscription );
-	}
+	App.AddChannel( BootupChannel );
 	
 	
-	/*
-	std::string TestFilename = "/users/grahamr/Desktop/ringo.png";
-	
-	//	gr: bootup commands
-	auto BootupGet = [TestFilename](TChannel& Channel)
-	{
-		TJob GetFrameJob;
-		GetFrameJob.mChannelMeta.mChannelRef = Channel.GetChannelRef();
-		GetFrameJob.mParams.mCommand = "getfeature";
-		GetFrameJob.mParams.AddParam("x", 120 );
-		GetFrameJob.mParams.AddParam("y", 120 );
-		GetFrameJob.mParams.AddParam("image", TestFilename, TJobFormat("text/file/png") );
-		Channel.OnJobRecieved( GetFrameJob );
-	};
-	
-	auto BootupMatch = [TestFilename](TChannel& Channel)
-	{
-		TJob GetFrameJob;
-		GetFrameJob.mChannelMeta.mChannelRef = Channel.GetChannelRef();
-		GetFrameJob.mParams.mCommand = "findfeature";
-		GetFrameJob.mParams.AddParam("feature", "01011000000000001100100100000000" );
-		GetFrameJob.mParams.AddParam("image", TestFilename, TJobFormat("text/file/png") );
-		Channel.OnJobRecieved( GetFrameJob );
-	};
 	
 
-	//	auto BootupFunc = BootupMatch;
-	//auto BootupFunc = BootupGet;
-	auto BootupFunc = BootupMatch;
-	if ( CommandLineChannel->IsConnected() )
-		BootupFunc( *CommandLineChannel );
-	else
-		CommandLineChannel->mOnConnected.AddListener( BootupFunc );
-*/
-	
 	
 	//	run
 	App.mConsoleApp.WaitForExit();
 
-	gStdioChannel.reset();
 	return TPopAppError::Success;
 }
 
