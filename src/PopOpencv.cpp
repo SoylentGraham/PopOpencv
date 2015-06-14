@@ -11,18 +11,15 @@
 #include <TFeatureBinRing.h>
 #include <SortArray.h>
 #include <TChannelFile.h>
-#include <opencv2/opencv.hpp>
-
+#include "CvCalibrateCamera.h"
 
 
 
 
 TPopOpencv::TPopOpencv() :
 	TJobHandler		( static_cast<TChannelManager&>(*this) ),
-	TPopJobHandler	( static_cast<TPopJobHandler&>(*this) )
+	TPopJobHandler	( static_cast<TJobHandler&>(*this) )
 {
-	cv::Mat Mat;
-	
 	AddJobHandler("exit", TParameterTraits(), *this, &TPopOpencv::OnExit );
 	
 	AddJobHandler("newframe", TParameterTraits(), *this, &TPopOpencv::OnNewFrame );
@@ -47,6 +44,12 @@ TPopOpencv::TPopOpencv() :
 	TParameterTraits FindInterestingFeaturesTraits;
 	//FindInterestingFeaturesTraits.mRequiredKeys.PushBack("image");
 	AddJobHandler("findinterestingfeatures", FindInterestingFeaturesTraits, *this, &TPopOpencv::OnFindInterestingFeatures );
+
+
+	TParameterTraits CalibrateCameraTraits;
+	CalibrateCameraTraits.mRequiredKeys.PushBack("points2D");
+	CalibrateCameraTraits.mRequiredKeys.PushBack("points3D");
+	AddJobHandler("calibratecamera", CalibrateCameraTraits, *this, &TPopOpencv::OnCalibrateCamera );
 }
 
 bool TPopOpencv::AddChannel(std::shared_ptr<TChannel> Channel)
@@ -150,7 +153,7 @@ void ScoreInterestingFeatures(ArrayBridge<TFeatureMatch>&& Features,float MinSco
 	}
 	
 	//	now re-apply the feature's score based on their uniqueness in the histogram
-	for ( int f=Features.GetSize()-1;	f>=0;	f-- )
+	for ( ssize_t f=Features.GetSize()-1;	f>=0;	f-- )
 	{
 		auto& Feature = Features[f];
 		auto& Score = Feature.mScore;
@@ -466,6 +469,110 @@ void TPopOpencv::OnNewFrame(TJobAndChannel& JobAndChannel)
 }
 
 
+void TPopOpencv::OnCalibrateCamera(TJobAndChannel& JobAndChannel)
+{
+	auto& Job = JobAndChannel.GetJob();
+
+	//	read points
+	auto Point2strings = Job.mParams.GetParamAs<std::string>("points2D");
+	auto Point3strings = Job.mParams.GetParamAs<std::string>("points3D");
+	
+	std::stringstream Error;
+
+	//	extract floats
+	Array<vec2f> Point2s;
+	{
+		std::stringstream ParseError;
+		auto AppendPoints2 = [&ParseError,&Point2s](const std::string& Point2str)
+		{
+			vec2f Point2f;
+			if ( !Soy::StringToType( Point2f, Point2str ) )
+			{
+				ParseError << "Failed to parse \"" << Point2str << "\" to NxM";
+				return false;
+			}
+			Point2s.PushBack( Point2f );
+			return true;
+		};
+		if ( !Soy::StringSplitByMatches( AppendPoints2, Point2strings, ",", false ) )
+		{
+			Error << "failed to parse 2d points; " << ParseError.str() << Soy::lf;
+		}
+	}
+	
+	Array<vec3f> Point3s;
+	{
+		std::stringstream ParseError;
+		auto AppendPoints3 = [&ParseError,&Point3s](const std::string& Point3str)
+		{
+			vec3f Point3f;
+			if ( !Soy::StringToType( Point3f, Point3str ) )
+			{
+				ParseError << "Failed to parse \"" << Point3str << "\" to NxMxO";
+				return false;
+			}
+			Point3s.PushBack( Point3f );
+			return true;
+		};
+		if ( !Soy::StringSplitByMatches( AppendPoints3, Point3strings, ",", false ) )
+		{
+			Error << "failed to parse 3d points; " << ParseError.str() << Soy::lf;
+		}
+	}
+	
+	//	need matching amounts
+	if ( Point2s.IsEmpty() )
+		Error << "no 2d points" << Soy::lf;
+	if ( Point3s.IsEmpty() )
+		Error << "no 3d points" << Soy::lf;
+	if ( Point2s.GetSize() != Point3s.GetSize() )
+		Error << "Number of points mis matched (" << Point2s.GetSize() << " vs " << Point3s.GetSize() << ")" << Soy::lf;
+	
+	TJobReply Reply( JobAndChannel );
+
+	if ( !Error.str().empty() )
+	{
+		Reply.mParams.AddErrorParam( Error.str() );
+		JobAndChannel.GetChannel().SendJobReply( Reply );
+		return;
+	}
+
+	Soy::TCamera Camera;
+	Opencv::TCalibrateCameraParams Params;
+	Params.mCameraImageSize = vec2f( 800, 600 );
+	try
+	{
+		if ( !Opencv::CalibrateCamera( Camera, Params, GetArrayBridge(Point3s), GetArrayBridge(Point2s) ) )
+			Error << "Failed to calibrate camera";
+	}
+	catch ( const Soy::AssertException& e )
+	{
+		Error << e.what();
+	}
+	catch ( ... )
+	{
+		Error << "Unknown exception calibrating camera";
+	}
+
+	if ( !Error.str().empty() )
+	{
+		Reply.mParams.AddErrorParam( Error.str() );
+	}
+	else
+	{
+		Reply.mParams.AddParam("CalibrationError", Camera.mCalibrationError );
+	
+		std::stringstream CameraOutput;
+		CameraOutput << Camera.mMatrix.rows[0] << ',';
+		CameraOutput << Camera.mMatrix.rows[1] << ',';
+		CameraOutput << Camera.mMatrix.rows[2] << ',';
+		CameraOutput << Camera.mMatrix.rows[3] << ',';
+		Reply.mParams.AddDefaultParam( CameraOutput.str() );
+	}
+	
+	JobAndChannel.GetChannel().SendJobReply( Reply );
+
+}
 
 
 

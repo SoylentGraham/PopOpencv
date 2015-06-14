@@ -20,6 +20,7 @@ public:
 	void			OnTrackFeatures(TJobAndChannel& JobAndChannel);
 	void			OnFindInterestingFeatures(TJobAndChannel& JobAndChannel);
 	void			OnNewFrame(TJobAndChannel& JobAndChannel);
+	void			OnCalibrateCamera(TJobAndChannel& JobAndChannel);
 	
 public:
 	Soy::Platform::TConsoleApp	mConsoleApp;

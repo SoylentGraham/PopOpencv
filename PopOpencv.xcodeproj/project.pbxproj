@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		BF04E7A51B2C86ED00301911 /* SoyMath.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF04E7A31B2C86ED00301911 /* SoyMath.cpp */; };
+		BF04E7A81B2DE68800301911 /* CvCalibrateCamera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF04E7A61B2DE68800301911 /* CvCalibrateCamera.cpp */; };
 		BF06DEF41B28F908006F241F /* TChannelFork.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF06DEF21B28F908006F241F /* TChannelFork.cpp */; };
 		BF06DEF71B28F928006F241F /* SoyAssert.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF06DEF51B28F928006F241F /* SoyAssert.cpp */; };
 		FB50C04F1A6ABD480011A9D9 /* memheap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FB50C04D1A6ABD480011A9D9 /* memheap.cpp */; };
@@ -98,6 +100,11 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		BF04E7A31B2C86ED00301911 /* SoyMath.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SoyMath.cpp; path = src/SoyMath.cpp; sourceTree = "<group>"; };
+		BF04E7A41B2C86ED00301911 /* SoyMath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SoyMath.h; path = src/SoyMath.h; sourceTree = "<group>"; };
+		BF04E7A61B2DE68800301911 /* CvCalibrateCamera.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CvCalibrateCamera.cpp; path = src/CvCalibrateCamera.cpp; sourceTree = SOURCE_ROOT; };
+		BF04E7A71B2DE68800301911 /* CvCalibrateCamera.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CvCalibrateCamera.h; path = src/CvCalibrateCamera.h; sourceTree = SOURCE_ROOT; };
+		BF04E7A91B2DF39100301911 /* mathfu */ = {isa = PBXFileReference; lastKnownFileType = folder; name = mathfu; path = src/mathfu; sourceTree = "<group>"; };
 		BF06DEF21B28F908006F241F /* TChannelFork.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TChannelFork.cpp; path = src/TChannelFork.cpp; sourceTree = "<group>"; };
 		BF06DEF31B28F908006F241F /* TChannelFork.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TChannelFork.h; path = src/TChannelFork.h; sourceTree = "<group>"; };
 		BF06DEF51B28F928006F241F /* SoyAssert.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SoyAssert.cpp; path = src/SoyAssert.cpp; sourceTree = "<group>"; };
@@ -338,6 +345,8 @@
 		FB8A05951A2E54730099596C /* src */ = {
 			isa = PBXGroup;
 			children = (
+				BF04E7A61B2DE68800301911 /* CvCalibrateCamera.cpp */,
+				BF04E7A71B2DE68800301911 /* CvCalibrateCamera.h */,
 				FB8A07181A2E6C3E0099596C /* PopOpencv.cpp */,
 				FB8A07191A2E6C3E0099596C /* PopOpencv.h */,
 			);
@@ -348,6 +357,7 @@
 		FB8A06221A2E5A280099596C /* soylib */ = {
 			isa = PBXGroup;
 			children = (
+				BF04E7A91B2DF39100301911 /* mathfu */,
 				FB50C04A1A6ABD480011A9D9 /* array.hpp */,
 				FB50C04B1A6ABD480011A9D9 /* bufferarray.hpp */,
 				BF06DEF51B28F928006F241F /* SoyAssert.cpp */,
@@ -366,6 +376,8 @@
 				FB8A06281A2E5A7C0099596C /* SoyDebug.h */,
 				FB6650CC1A56FD8600DF0A12 /* SoyDebug.mm */,
 				FB8A06291A2E5A7C0099596C /* SoyEnum.h */,
+				BF04E7A31B2C86ED00301911 /* SoyMath.cpp */,
+				BF04E7A41B2C86ED00301911 /* SoyMath.h */,
 				FB8A062A1A2E5A7C0099596C /* SoyEvent.cpp */,
 				FB8A062B1A2E5A7C0099596C /* SoyEvent.h */,
 				FB8A062C1A2E5A7C0099596C /* SoyFilesytem.cpp */,
@@ -570,6 +582,7 @@
 				FB8A06FC1A2E6B520099596C /* TestRunner.cpp in Sources */,
 				FB63E51A1A71C3E9002C59BE /* SoyRingArray.cpp in Sources */,
 				FB8A06651A2E5A7C0099596C /* SoyTest.cpp in Sources */,
+				BF04E7A51B2C86ED00301911 /* SoyMath.cpp in Sources */,
 				FB8A06F61A2E6B520099596C /* Test.cpp in Sources */,
 				FB8A06FA1A2E6B520099596C /* TestReporterStdout.cpp in Sources */,
 				FB8A06571A2E5A7C0099596C /* SoyFilesytem.cpp in Sources */,
@@ -603,6 +616,7 @@
 				FB8A069C1A2E6AB50099596C /* TSerialisation.cpp in Sources */,
 				FB8A069A1A2E6AB50099596C /* TProtocolJson.cpp in Sources */,
 				FB8A06591A2E5A7C0099596C /* SoyMemFile.cpp in Sources */,
+				BF04E7A81B2DE68800301911 /* CvCalibrateCamera.cpp in Sources */,
 				FB8A06941A2E6AB50099596C /* TJob.cpp in Sources */,
 				FB8A06F01A2E6B520099596C /* DeferredTestReporter.cpp in Sources */,
 				FB8A06F31A2E6B520099596C /* SignalTranslator.cpp in Sources */,
