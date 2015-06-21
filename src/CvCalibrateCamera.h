@@ -26,8 +26,7 @@ public:
 		mCalibrationError		( 0.f ),
 		mFocalLength			( 1.f ),
 		mDistortionK5			( 0 ),
-		mFovVert				( 40.f ),
-		mFovHorz				( 40.f ),
+		mFov					( 40.f, 40.f ),
 		mAspectRatio			( 1.f )
 	{
 	}
@@ -51,8 +50,7 @@ public:
 	vec2f	mPrinciplePoint;
 
 	//	gr: do we ever use horz & vert AND aspect ratio? doesn't one set calculate the other?
-	float	mFovVert;
-	float	mFovHorz;
+	vec2f	mFov;
 	float	mAspectRatio;
 	
 	std::tuple<vec3f,vec3f>	ScreenToWorldRay(vec2f Screen);
@@ -69,7 +67,7 @@ public:
 		mCalculateIntrinsic		( true ),
 		mForceImageAspectRatio	( true ),
 		mCalculateExtrinsic		( true ),
-		mZeroRadialDistortion	( true )
+		mZeroRadialDistortion	( false )
 	{
 	}
 	

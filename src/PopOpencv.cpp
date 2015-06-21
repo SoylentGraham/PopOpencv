@@ -572,6 +572,14 @@ void TPopOpencv::OnCalibrateCamera(TJobAndChannel& JobAndChannel)
 		CameraOutput << Camera.mMatrix.rows[2] << ',';
 		CameraOutput << Camera.mMatrix.rows[3] << Soy::lf;
 		
+		CameraOutput << "cameraprojectionmtx:";
+		CameraOutput << Camera.mIntrinsicMatrix.rows[0] << ',';
+		CameraOutput << Camera.mIntrinsicMatrix.rows[1] << ',';
+		CameraOutput << Camera.mIntrinsicMatrix.rows[2] << ',';
+		CameraOutput << Camera.mIntrinsicMatrix.rows[3] << Soy::lf;
+		
+		CameraOutput << "fov:" << Camera.mFov << Soy::lf;
+		
 		CameraOutput << "cameraworldpos:";
 		CameraOutput << Camera.mCameraWorldPosition << Soy::lf;
 		

@@ -282,8 +282,7 @@ bool Opencv::CalibrateCamera(Soy::TCamera& Camera,TCalibrateCameraParams Params,
 			vec2f LensOffset( cameraMatrix.at<double>(0,2), cameraMatrix.at<double>(1,2) );
 			Projection.mFocalOffset = vec2f( cameraMatrix.at<double>(0,0), cameraMatrix.at<double>(1,1) );
 			
-			Projection.mFovVert = fovy;
-			Projection.mFovHorz = fovx;
+			Projection.mFov = vec2f( fovx, fovy );
 			Projection.mAspectRatio = aspectRatio;
 			Projection.mLensOffset = LensOffset;	//	principalPoint?
 			Projection.mFocalLength = focalLength * FocalLengthMultiplier;
