@@ -2,6 +2,8 @@
 #include <opencv2/opencv.hpp>
 #include <SoyAssert.h>
 #include <SoyDebug.h>
+#include <HeapArray.hpp>
+
 
 const Soy::Matrix4x4 gWorldToCalibration(
 								   1, 0, 0, 0,
@@ -20,11 +22,48 @@ Soy::Matrix3x1 PointToMatrix(const cv::Point3f& p)
 	return Soy::Matrix3x1( p.x, p.y, p.z );
 }
 
+Soy::Matrix2x1 PointToMatrix(const cv::Point2f& p)
+{
+	return Soy::Matrix2x1( p.x, p.y );
+}
+
+vec3f PointToVector(const cv::Point3f& p)
+{
+	auto m = PointToMatrix( p );
+	return Soy::MatrixToVector( m );
+}
+
+vec2f PointToVector(const cv::Point2f& p)
+{
+	auto m = PointToMatrix( p );
+	return Soy::MatrixToVector( m );
+}
+
 cv::Point2f MatrixToPoint(const Soy::Matrix2x1& m)
 {
 	return cv::Point2f( m.x(), m.y() );
 }
 
+Soy::Matrix4x1 MatToMatrix4x1(const cv::Mat& Mat)
+{
+	return Soy::Matrix4x1( Mat.at<double>(0), Mat.at<double>(1), Mat.at<double>(2), Mat.at<double>(3) );
+}
+
+Soy::Matrix4x4 MatToMatrix4x4(const cv::Mat& Mat)
+{
+	return Soy::Matrix4x4( Mat.at<double>(0,0), Mat.at<double>(1,0), Mat.at<double>(2,0), Mat.at<double>(3,0),
+						  Mat.at<double>(0,1), Mat.at<double>(1,1), Mat.at<double>(2,1), Mat.at<double>(3,1),
+						  Mat.at<double>(0,2), Mat.at<double>(1,2), Mat.at<double>(2,2), Mat.at<double>(3,2),
+						   Mat.at<double>(0,3), Mat.at<double>(1,3), Mat.at<double>(2,3), Mat.at<double>(3,3)
+						  );
+}
+
+Soy::Matrix3x3 MatToMatrix3x3(const cv::Mat& Mat)
+{
+	return Soy::Matrix3x3( Mat.at<double>(0,0), Mat.at<double>(1,0), Mat.at<double>(2,0),
+						  Mat.at<double>(0,1), Mat.at<double>(1,1), Mat.at<double>(2,1),
+						  Mat.at<double>(0,2), Mat.at<double>(1,2), Mat.at<double>(2,2) );
+}
 
 cv::Point3f WorldToCalibration(const vec3f& Position)
 {
@@ -33,9 +72,19 @@ cv::Point3f WorldToCalibration(const vec3f& Position)
 	return MatrixToPoint( CalibPos );
 }
 
+const Soy::Matrix4x4& GetWorldToCalibrationMtx()
+{
+	return gWorldToCalibration;
+}
+
+Soy::Matrix4x4 GetCalibrationToWorldMtx()
+{
+	return GetWorldToCalibrationMtx().Inverse();
+}
+
 vec3f CalibrationToWorld(const cv::Point3f& Position)
 {
-	auto gCalibrationToWorld = gWorldToCalibration.Inverse();
+	auto gCalibrationToWorld = GetCalibrationToWorldMtx();
 	auto World = gCalibrationToWorld * PointToMatrix( Position );
 	return Soy::MatrixToVector( World );
 //	vec3f CalibPos( Position.x, Position.y, Position.z );
@@ -75,6 +124,43 @@ bool GetCalibrationVectors(std::vector<std::vector<cv::Point3f> >& WorldPointsAr
 	
 	return true;
 }
+
+
+std::tuple<vec3f,vec3f> Soy::TCamera::ScreenToWorldRay(vec2f Screen)
+{
+	//	gr: old code started at -1 for near!?
+	auto Near = ScreenToWorld( Screen, 0 );
+	auto Far = ScreenToWorld( Screen, 1 );
+	return std::make_tuple( Near, Far );
+}
+
+vec3f Soy::TCamera::ScreenToWorld(vec2f Screen,float ViewDepth)
+{
+	return vec3f(0,0,0);
+	/*
+	auto ProjectionMtx = Soy::VectorToMatrix( Camera.mIntrinsicMatrix );
+	auto ModelViewMtx = Soy::VectorToMatrix( Camera.mMatrix );
+	auto Mvp = ModelViewMtx * ProjectionMtx;
+	auto Pvm = Mvp.Inverse();
+	//Soy::Matrix4x1 View4( ViewPoints[i].x / ImageScalar.x, ViewPoints[i].y / ImageScalar.y, 0, 1 );
+	//Soy::Matrix4x1 Screen4( ViewPoints[i].x / ImageScalar.x, ViewPoints[i].y / ImageScalar.y, 0, 1 );
+	
+	float ViewDepth = 0;
+	Soy::Matrix4x1 Screen4( ViewPoints[i].x, ViewPoints[i].y, 0, 1 );
+	auto ReprojWorld4 = Screen4 * Pvm;
+	*/
+	
+}
+
+vec3f Soy::TCamera::ScreenToWorldY(vec2f Screen,float ViewDepth)
+{
+	return vec3f(0,0,0);
+	/*
+	auto Ray = ScreenToWorldRay(<#vec2f Screen#>)
+	std::tuple<vec3f,vec3f> Soy::TCamera::ScreenToWorldRay(vec2f Screen)
+*/
+}
+
 
 
 bool Opencv::CalibrateCamera(Soy::TCamera& Camera,TCalibrateCameraParams Params,const ArrayBridge<vec3f>&& WorldPoints,const ArrayBridge<vec2f>&& ViewPoints)
@@ -169,12 +255,11 @@ bool Opencv::CalibrateCamera(Soy::TCamera& Camera,TCalibrateCameraParams Params,
 
 	//	save error
 	Camera.mCalibrationError = AverageError;
-	/*
+	
 	//	pull out lens info
-	Soy::TCamera NewCamera = Camera.GetCamera();
 	if ( Params.mCalculateIntrinsic )
 	{
-		auto& Projection = NewCamera;
+		auto& Projection = Camera;
 		{
 			//	http://stackoverflow.com/questions/16329867/why-does-the-focal-length-in-the-camera-intrinsics-matrix-have-two-dimensions
 			static float ApertureWidth = 0.1f;
@@ -182,7 +267,7 @@ bool Opencv::CalibrateCamera(Soy::TCamera& Camera,TCalibrateCameraParams Params,
 			static float FocalLengthMultiplier = 1.f;
 			vec2f ApertureSize( ApertureWidth, ApertureHeight );	//	physical width of sensor, ie, the film. metres?
 			double fovx,fovy,aspectRatio;
-			double focalLength;	//	mm, relative to apature?
+			double focalLength;
 			cv::Point2d principalPoint;	//	in pixels...
 			calibrationMatrixValues( cameraMatrix, ImageSize, ApertureSize.x, ApertureSize.y, fovx, fovy, focalLength, principalPoint, aspectRatio);
 			
@@ -191,23 +276,20 @@ bool Opencv::CalibrateCamera(Soy::TCamera& Camera,TCalibrateCameraParams Params,
 				aspectRatio = ImageScalar.x / ImageScalar.y;
 			}
 			
-			ofMatrix3x3 CameraMatrixOf( cameraMatrix.at<double>(0,0), cameraMatrix.at<double>(1,0), cameraMatrix.at<double>(2,0),
-									   cameraMatrix.at<double>(0,1), cameraMatrix.at<double>(1,1), cameraMatrix.at<double>(2,1),
-									   cameraMatrix.at<double>(0,2), cameraMatrix.at<double>(1,2), cameraMatrix.at<double>(2,2) );
+			Soy::Matrix3x3 CameraMatrixOf = MatToMatrix3x3(cameraMatrix);
+
+			//	gr: lens offset in pixels, focal offset in... mm?
+			vec2f LensOffset( cameraMatrix.at<double>(0,2), cameraMatrix.at<double>(1,2) );
+			Projection.mFocalOffset = vec2f( cameraMatrix.at<double>(0,0), cameraMatrix.at<double>(1,1) );
 			
-			vec2f CameraCenter( cameraMatrix.at<double>(0,2), cameraMatrix.at<double>(1,2) );
-			Projection.mFocal = vec2f( cameraMatrix.at<double>(0,0), cameraMatrix.at<double>(1,1) );
-			
-			//	horz fov not used in openframeworks stuff
-			Projection.setFov( fovy );
-			Projection.setLensOffset( CameraCenter );	//	principalPoint?
-			Projection.setAspectRatio( aspectRatio );
+			Projection.mFovVert = fovy;
+			Projection.mFovHorz = fovx;
+			Projection.mAspectRatio = aspectRatio;
+			Projection.mLensOffset = LensOffset;	//	principalPoint?
 			Projection.mFocalLength = focalLength * FocalLengthMultiplier;
 			
 			//	near clip is the distance from the sensor (film) to the edge of the lens in world space
-			Projection.setNearClip( Camera.GetCamera().getNearClip() );
-			Projection.setFarClip( Camera.GetCamera().getFarClip() );
-			Projection.setLensOffset( vec2f( principalPoint.x, principalPoint.y ) );
+			Projection.mPrinciplePoint = vec2f( principalPoint.x, principalPoint.y );
 			
 			//	get the distortion values
 			//	k1,k2,p1,p2,k3,k4,k5,k6
@@ -240,9 +322,8 @@ bool Opencv::CalibrateCamera(Soy::TCamera& Camera,TCalibrateCameraParams Params,
 			ObjectPositions.PushBack( WorldPos );
 		}
 	}
-	*/
 	
-	
+	/*
 	//	verify matrixes by re-projecting
 	{
 		//	get intrinsic matrix
@@ -271,6 +352,7 @@ bool Opencv::CalibrateCamera(Soy::TCamera& Camera,TCalibrateCameraParams Params,
 		
 		vec3f TranslationVector3( TranslationVector.at<double>(0, 0), TranslationVector.at<double>(1, 0), TranslationVector.at<double>(2, 0) );
 		
+		//	gr: copy, not transposed!
 		cv::Mat IntrinsicMtx = cv::Mat::zeros(4, 4, CV_64FC1);
 		for (int y = 0; y < 3; y++)
 			for (int x = 0; x < 3; x++)
@@ -294,16 +376,18 @@ bool Opencv::CalibrateCamera(Soy::TCamera& Camera,TCalibrateCameraParams Params,
 			cv::Mat Multiplied;
 			Multiplied = IntrinsicMtx * ExtrinsicMtx * ViewPos;
 			
-			Soy::Matrix4x1 ReProjected4( Multiplied.at<double>(0), Multiplied.at<double>(1), Multiplied.at<double>(2), Multiplied.at<double>(3) );
+			Soy::Matrix4x1 View4( )
+			
+			Soy::Matrix4x1 ReProjected4 = MatToMatrix4x1( Multiplied );
 			Soy::Matrix3x1 ReProjected3( ReProjected4.x(), ReProjected4.y(), ReProjected4.z() );
 			
 			Soy::Matrix3x1 WorldPos( WorldPoint.x, WorldPoint.y, WorldPoint.z );
 			Soy::Matrix3x1 Delta( ReProjected3 - WorldPos );
 			
-			std::Debug << "CameraCalibration " << i << " difference: ";
-			//std::Debug << "CameraCalibration " << i << " difference: " << Delta << Soy::lf;
+			std::Debug << "CameraCalibration " << i << " difference: " << Delta << Soy::lf;
 		}
 	}
+	*/
 	
 	
 	//	rot and trans output...
@@ -316,30 +400,33 @@ bool Opencv::CalibrateCamera(Soy::TCamera& Camera,TCalibrateCameraParams Params,
 		vec3f tran3( TranslationVector.at<double>(0), TranslationVector.at<double>(1), TranslationVector.at<double>(2) );
 		vec3f rot3( Soy::RadToDeg(RotationVector.at<double>(0)), Soy::RadToDeg(RotationVector.at<double>(1)), Soy::RadToDeg(RotationVector.at<double>(2)) );
 		
+		Camera.mCameraWorldPosition = tran3;
+		Camera.mCameraRotationEularDeg = rot3;
+		
 		//	convert rotation to matrix
 		cv::Mat expandedRotationVector;
 		cv::Rodrigues(RotationVector, expandedRotationVector);
 		
 		//	merge translation and rotation into a model-view matrix
-		cv::Mat Rt = cv::Mat::zeros(4, 4, CV_64FC1);
+		cv::Mat ExtrinsicMtx = cv::Mat::zeros(4, 4, CV_64FC1);
 		for (int y = 0; y < 3; y++)
 			for (int x = 0; x < 3; x++)
-				Rt.at<double>(y, x) = expandedRotationVector.at<double>(y, x);
-		Rt.at<double>(0, 3) = TranslationVector.at<double>(0, 0);
-		Rt.at<double>(1, 3) = TranslationVector.at<double>(1, 0);
-		Rt.at<double>(2, 3) = TranslationVector.at<double>(2, 0);
-		Rt.at<double>(3, 3) = 1.0;
-		
-		//	convert to openframeworks matrix AND transpose at the same time
+				ExtrinsicMtx.at<double>(y, x) = expandedRotationVector.at<double>(y, x);
+		ExtrinsicMtx.at<double>(0, 3) = TranslationVector.at<double>(0, 0);
+		ExtrinsicMtx.at<double>(1, 3) = TranslationVector.at<double>(1, 0);
+		ExtrinsicMtx.at<double>(2, 3) = TranslationVector.at<double>(2, 0);
+		ExtrinsicMtx.at<double>(3, 3) = 1.0;
+	
+		//	convert to our matrix AND transpose(row major to col major) at the same time
 		Soy::Matrix4x4 ModelView;
 		for ( int r=0;	r<4;	r++ )
 			for ( int c=0;	c<4;	c++ )
-				ModelView(r,c) = Rt.at<double>( c, r );
-		
+				ModelView(r,c) = ExtrinsicMtx.at<double>( c, r );
+
 		//	swap y & z planes so y is up
-		auto gCalibrationToWorld = gWorldToCalibration.Inverse();
-		ModelView *= gCalibrationToWorld;
-		
+		ModelView *= GetCalibrationToWorldMtx();
+	
+		/*
 		//	invert y and z planes for -/+ differences between opencv and opengl
 		static Soy::Matrix4x4 InvertHandednessMatrix(
 												  1,  0,  0, 0,
@@ -348,11 +435,12 @@ bool Opencv::CalibrateCamera(Soy::TCamera& Camera,TCalibrateCameraParams Params,
 												  0,  0,  0,  1
 												  );
 		ModelView *= InvertHandednessMatrix;
-		
+		*/
 		//	invert to turn matrix from object-relative-to-camera to camera-relative-to-object(0,0,0)
 		static bool doinverse = true;
 		if ( doinverse )
 			ModelView = ModelView.Inverse();
+		
 		
 		/*
 		 //	http://stackoverflow.com/a/1264880/355753
@@ -366,12 +454,60 @@ bool Opencv::CalibrateCamera(Soy::TCamera& Camera,TCalibrateCameraParams Params,
 		Camera.mMatrix = Soy::MatrixToVector(ModelView);
 		
 		/*
-		static bool JustLookAt = true;
-		if ( JustLookAt )
+		 static bool JustLookAt = true;
+		 if ( JustLookAt )
 			NewCamera.lookAt( WORLD_UP );
 		 */
-	}
 		
+		//	calc intrinsic mtx
+		//	gr: projection matrix?
+		cv::Mat IntrinsicMtx = cv::Mat::zeros(4, 4, CV_64FC1);
+		for (int y = 0; y < 3; y++)
+			for (int x = 0; x < 3; x++)
+				IntrinsicMtx.at<double>(y, x) = cameraMatrix.at<double>(y, x);
+		IntrinsicMtx.at<double>(0, 3) = 0;
+		IntrinsicMtx.at<double>(1, 3) = 0;
+		IntrinsicMtx.at<double>(2, 3) = 0;
+		IntrinsicMtx.at<double>(3, 3) = 1.0;
+		
+		Camera.mIntrinsicMatrix = Soy::MatrixToVector( MatToMatrix4x4(IntrinsicMtx) );
+	}
+	
+	static bool TestReprojection = true;
+	if ( TestReprojection )
+	{
+		auto& WorldPoints = WorldPointsArray[0];
+		auto& ViewPoints = ViewPointsArray[0];
+		
+		//	test reprojection error
+		for ( int i=0;	i<WorldPoints.size();	i++ )
+		{
+			auto& WorldPoint = WorldPoints[0];
+			
+			/*
+			cv::Mat ViewPos( 4, 1, CV_64FC1 );
+			ViewPos.at<double>(0,0) = ViewPoints[i].x / ImageScalar.x;
+			ViewPos.at<double>(1,0) = ViewPoints[i].y / ImageScalar.y;
+			ViewPos.at<double>(2,0) = 0;
+			ViewPos.at<double>(3,0) = 1;
+			
+			cv::Mat Multiplied;
+			Multiplied = IntrinsicMtx * ExtrinsicMtx * ViewPos;
+			
+			Soy::Matrix4x1 ReProjected4( Multiplied.at<double>(0), Multiplied.at<double>(1), Multiplied.at<double>(2), Multiplied.at<double>(3) );
+			Soy::Matrix3x1 ReProjected3( ReProjected4.x(), ReProjected4.y(), ReProjected4.z() );
+			*/
+			
+			auto ReprojectedWorldPos = Camera.ScreenToWorldY( PointToVector(ViewPoints[i]), 0.f );
+			/*
+			Soy::Matrix3x1 WorldPos( WorldPoint.x, WorldPoint.y, WorldPoint.z );
+			Soy::Matrix3x1 Delta( ReprojectedWorldPos.xyz() - WorldPos );
+			
+			std::Debug << "CameraCalibration point " << i << " reprojection difference: " << Delta << Soy::lf;
+			*/
+		}
+	}
+	
 	return true;
 }
 
