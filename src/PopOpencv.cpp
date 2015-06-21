@@ -539,7 +539,9 @@ void TPopOpencv::OnCalibrateCamera(TJobAndChannel& JobAndChannel)
 
 	Soy::TCamera Camera;
 	Opencv::TCalibrateCameraParams Params;
-	Params.mCameraImageSize = vec2f( 800, 600 );
+	static float imgw = 3000;
+	static float imgh = 2250;
+	Params.mCameraImageSize = vec2f( imgw, imgh );
 	try
 	{
 		if ( !Opencv::CalibrateCamera( Camera, Params, GetArrayBridge(Point3s), GetArrayBridge(Point2s) ) )
@@ -563,10 +565,19 @@ void TPopOpencv::OnCalibrateCamera(TJobAndChannel& JobAndChannel)
 		Reply.mParams.AddParam("CalibrationError", Camera.mCalibrationError );
 	
 		std::stringstream CameraOutput;
+
+		CameraOutput << "cameramtx:";
 		CameraOutput << Camera.mMatrix.rows[0] << ',';
 		CameraOutput << Camera.mMatrix.rows[1] << ',';
 		CameraOutput << Camera.mMatrix.rows[2] << ',';
-		CameraOutput << Camera.mMatrix.rows[3] << ',';
+		CameraOutput << Camera.mMatrix.rows[3] << Soy::lf;
+		
+		CameraOutput << "cameraworldpos:";
+		CameraOutput << Camera.mCameraWorldPosition << Soy::lf;
+		
+		CameraOutput << "camerarotationeulardegrees:";
+		CameraOutput << Camera.mCameraRotationEularDeg << Soy::lf;
+		
 		Reply.mParams.AddDefaultParam( CameraOutput.str() );
 	}
 	
