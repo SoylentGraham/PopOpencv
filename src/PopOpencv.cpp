@@ -578,14 +578,11 @@ void TPopOpencv::OnCalibrateCamera(TJobAndChannel& JobAndChannel)
 		CameraOutput << Camera.mIntrinsicMatrix.rows[2] << ',';
 		CameraOutput << Camera.mIntrinsicMatrix.rows[3] << Soy::lf;
 		
+		CameraOutput << "calibrationerror:" << Camera.mCalibrationError << Soy::lf;
 		CameraOutput << "fov:" << Camera.mFov << Soy::lf;
 		CameraOutput << "lensoffset:" << Camera.mLensOffset << Soy::lf;
-		
-		CameraOutput << "cameraworldpos:";
-		CameraOutput << Camera.mCameraWorldPosition << Soy::lf;
-		
-		CameraOutput << "camerarotationeulardegrees:";
-		CameraOutput << Camera.mCameraRotationEularDeg << Soy::lf;
+		CameraOutput << "cameraworldpos:" << Camera.mCameraWorldPosition << Soy::lf;
+		CameraOutput << "camerarotationeulardegrees:" << Camera.mCameraRotationEularDeg << Soy::lf;
 		
 		CameraOutput << "distortionradtank5:";
 		CameraOutput << Camera.mRadialDistortion << ',';
