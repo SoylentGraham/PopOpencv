@@ -17,6 +17,11 @@ cv::Point3f MatrixToPoint(const Soy::Matrix3x1& m)
 	return cv::Point3f( m.x(), m.y(), m.z() );
 }
 
+cv::Point2f VectorToPoint(const vec2f& v)
+{
+	return cv::Point2f( v.x, v.y );
+}
+
 Soy::Matrix3x1 PointToMatrix(const cv::Point3f& p)
 {
 	return Soy::Matrix3x1( p.x, p.y, p.z );
@@ -513,3 +518,33 @@ bool Opencv::CalibrateCamera(Soy::TCamera& Camera,TCalibrateCameraParams Params,
 	return true;
 }
 
+
+
+
+bool Opencv::GetHomography(Soy::Matrix3x3& HomographyMtx, Opencv::TGetHomographyParams Params, const ArrayBridge<vec2f> &&Points2D, const ArrayBridge<vec2f> &&PointsUv)
+{
+	auto ImageScalar = Params.mCameraImageSize;
+	if ( ImageScalar.x < 1 || ImageScalar.y < 1 )
+	{
+		Soy::Assert(false, "Camera image size too small");
+		return false;
+	}
+	
+	if ( !Soy::Assert( Points2D.GetSize() > 0, "No points 2D" ) )
+		return false;
+	if ( !Soy::Assert( PointsUv.GetSize() > 0, "No points uv" ) )
+		return false;
+	if ( !Soy::Assert( PointsUv.GetSize() == Points2D.GetSize(), "point count mis match" ) )
+		return false;
+	
+	std::vector<cv::Point2f> SrcPoints;
+	Points2D.ForEach( [&SrcPoints,&ImageScalar](const vec2f& p)	{ SrcPoints.push_back(VectorToPoint(p*ImageScalar));	return true;	} );
+	std::vector<cv::Point2f> DestinationPoints;
+	PointsUv.ForEach( [&DestinationPoints,&ImageScalar](const vec2f& p)	{ DestinationPoints.push_back(VectorToPoint(p*ImageScalar));	return true;	} );
+	
+	cv::Mat Homography = cv::findHomography( SrcPoints, DestinationPoints );
+
+	HomographyMtx = MatToMatrix3x3( Homography );
+	
+	return true;
+}

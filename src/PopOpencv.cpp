@@ -45,11 +45,16 @@ TPopOpencv::TPopOpencv() :
 	//FindInterestingFeaturesTraits.mRequiredKeys.PushBack("image");
 	AddJobHandler("findinterestingfeatures", FindInterestingFeaturesTraits, *this, &TPopOpencv::OnFindInterestingFeatures );
 
-
+	
 	TParameterTraits CalibrateCameraTraits;
 	CalibrateCameraTraits.mRequiredKeys.PushBack("points2D");
 	CalibrateCameraTraits.mRequiredKeys.PushBack("points3D");
 	AddJobHandler("calibratecamera", CalibrateCameraTraits, *this, &TPopOpencv::OnCalibrateCamera );
+	
+	TParameterTraits GetHomographyTraits;
+	GetHomographyTraits.mRequiredKeys.PushBack("points2D");
+	GetHomographyTraits.mRequiredKeys.PushBack("pointsuv");
+	AddJobHandler("gethomography", GetHomographyTraits, *this, &TPopOpencv::OnGetHomography );
 }
 
 bool TPopOpencv::AddChannel(std::shared_ptr<TChannel> Channel)
@@ -596,6 +601,111 @@ void TPopOpencv::OnCalibrateCamera(TJobAndChannel& JobAndChannel)
 
 }
 
+
+void TPopOpencv::OnGetHomography(TJobAndChannel& JobAndChannel)
+{
+	auto& Job = JobAndChannel.GetJob();
+	
+	//	read points
+	auto Point2strings = Job.mParams.GetParamAs<std::string>("points2D");
+	auto Pointuvstrings = Job.mParams.GetParamAs<std::string>("pointsuv");
+	
+	std::stringstream Error;
+	
+	//	extract floats
+	Array<vec2f> Point2s;
+	{
+		std::stringstream ParseError;
+		auto AppendPoints2 = [&ParseError,&Point2s](const std::string& Point2str)
+		{
+			vec2f Point2f;
+			if ( !Soy::StringToType( Point2f, Point2str ) )
+			{
+				ParseError << "Failed to parse \"" << Point2str << "\" to NxM";
+				return false;
+			}
+			Point2s.PushBack( Point2f );
+			return true;
+		};
+		if ( !Soy::StringSplitByMatches( AppendPoints2, Point2strings, ",", false ) )
+		{
+			Error << "failed to parse 2d points; " << ParseError.str() << Soy::lf;
+		}
+	}
+	
+	Array<vec2f> Pointuvs;
+	{
+		std::stringstream ParseError;
+		auto AppendPoints3 = [&ParseError,&Pointuvs](const std::string& Point3str)
+		{
+			vec2f Pointuv;
+			if ( !Soy::StringToType( Pointuv, Point3str ) )
+			{
+				ParseError << "Failed to parse \"" << Point3str << "\" to NxMxO";
+				return false;
+			}
+			Pointuvs.PushBack( Pointuv );
+			return true;
+		};
+		if ( !Soy::StringSplitByMatches( AppendPoints3, Pointuvstrings, ",", false ) )
+		{
+			Error << "failed to parse uv points; " << ParseError.str() << Soy::lf;
+		}
+	}
+	
+	//	need matching amounts
+	if ( Point2s.IsEmpty() )
+		Error << "no 2d points" << Soy::lf;
+	if ( Pointuvs.IsEmpty() )
+		Error << "no uv points" << Soy::lf;
+	if ( Point2s.GetSize() != Pointuvs.GetSize() )
+		Error << "Number of points mis matched (" << Point2s.GetSize() << " vs " << Pointuvs.GetSize() << ")" << Soy::lf;
+	
+	TJobReply Reply( JobAndChannel );
+	
+	if ( !Error.str().empty() )
+	{
+		Reply.mParams.AddErrorParam( Error.str() );
+		JobAndChannel.GetChannel().SendJobReply( Reply );
+		return;
+	}
+	
+	Soy::Matrix3x3 Homography;
+	Opencv::TGetHomographyParams Params;
+	static float imgw = 3000;
+	static float imgh = 2250;
+	Params.mCameraImageSize = vec2f( imgw, imgh );
+	try
+	{
+		if ( !Opencv::GetHomography( Homography, Params, GetArrayBridge(Pointuvs), GetArrayBridge(Point2s) ) )
+		Error << "Failed to get homography";
+	}
+	catch ( const Soy::AssertException& e )
+	{
+		Error << e.what();
+	}
+	catch ( ... )
+	{
+		Error << "Unknown exception getting homography";
+	}
+	
+	if ( !Error.str().empty() )
+	{
+		Reply.mParams.AddErrorParam( Error.str() );
+	}
+	else
+	{
+		std::stringstream CameraOutput;
+		
+		CameraOutput << "homography:";
+		CameraOutput << Homography << Soy::lf;
+		
+		Reply.mParams.AddDefaultParam( CameraOutput.str() );
+	}
+	
+	JobAndChannel.GetChannel().SendJobReply( Reply );
+	
+}
 
 
 TPopAppError::Type PopMain(TJobParams& Params)

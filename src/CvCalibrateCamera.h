@@ -12,9 +12,11 @@ namespace Soy
 namespace Opencv
 {
 	class TCalibrateCameraParams;
+	class TGetHomographyParams;
 
 	//	view points should be normalised
 	bool	CalibrateCamera(Soy::TCamera& Camera,TCalibrateCameraParams Params,const ArrayBridge<vec3f>&& WorldPoints,const ArrayBridge<vec2f>&& ViewPoints);
+	bool	GetHomography(Soy::Matrix3x3& Homography,TGetHomographyParams Params,const ArrayBridge<vec2f>&& Points2D,const ArrayBridge<vec2f>&& PointsUv);
 };
 
 
@@ -80,4 +82,18 @@ public:
 	vec2f	mCameraImageSize;
 	bool	mZeroRadialDistortion;
 };
+
+
+
+class Opencv::TGetHomographyParams
+{
+public:
+	TGetHomographyParams() :
+		mCameraImageSize		( 100, 100 )
+	{
+	}
+	
+	vec2f	mCameraImageSize;
+};
+
 

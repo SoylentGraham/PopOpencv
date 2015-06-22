@@ -21,6 +21,7 @@ public:
 	void			OnFindInterestingFeatures(TJobAndChannel& JobAndChannel);
 	void			OnNewFrame(TJobAndChannel& JobAndChannel);
 	void			OnCalibrateCamera(TJobAndChannel& JobAndChannel);
+	void			OnGetHomography(TJobAndChannel& JobAndChannel);
 	
 public:
 	Soy::Platform::TConsoleApp	mConsoleApp;
