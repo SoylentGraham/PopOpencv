@@ -278,13 +278,16 @@ bool Opencv::CalibrateCamera(Soy::TCamera& Camera,TCalibrateCameraParams Params,
 			
 			Soy::Matrix3x3 CameraMatrixOf = MatToMatrix3x3(cameraMatrix);
 
-			//	gr: lens offset in pixels, focal offset in... mm?
-			vec2f LensOffset( cameraMatrix.at<double>(0,2), cameraMatrix.at<double>(1,2) );
-			Projection.mFocalOffset = vec2f( cameraMatrix.at<double>(0,0), cameraMatrix.at<double>(1,1) );
+			//	gr: normalise lens offset
+			auto fx = cameraMatrix.at<double>(0,0) / ImageScalar.x;
+			auto fy = cameraMatrix.at<double>(1,1) / ImageScalar.y;
+			auto cx = cameraMatrix.at<double>(0,2) / ImageScalar.x;
+			auto cy = cameraMatrix.at<double>(1,2) / ImageScalar.y;
+			Projection.mLensOffset = vec2f( 0.5f-cx, 0.5f-cy );
+			Projection.mFocalSize = vec2f( fx / ImageScalar.x, fy / ImageScalar.y );
 			
 			Projection.mFov = vec2f( fovx, fovy );
 			Projection.mAspectRatio = aspectRatio;
-			Projection.mLensOffset = LensOffset;	//	principalPoint?
 			Projection.mFocalLength = focalLength * FocalLengthMultiplier;
 			
 			//	near clip is the distance from the sensor (film) to the edge of the lens in world space

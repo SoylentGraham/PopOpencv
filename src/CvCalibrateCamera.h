@@ -45,8 +45,10 @@ public:
 	vec2f	mRadialDistortion;
 	vec2f	mTangentialDistortion;
 	float	mDistortionK5;
-	vec2f	mFocalOffset;		//	camera matrix focal points x/y; http://stackoverflow.com/questions/16329867/why-does-the-focal-length-in-the-camera-intrinsics-matrix-have-two-dimensions
-	vec2f	mLensOffset;		//	principle point?
+
+	//	gr: normalised
+	vec2f	mFocalSize;		//	"fx/fy" camera matrix focal points x/y; http://stackoverflow.com/questions/16329867/why-does-the-focal-length-in-the-camera-intrinsics-matrix-have-two-dimensions
+	vec2f	mLensOffset;	//	"cx/cy" principle point?
 	vec2f	mPrinciplePoint;
 
 	//	gr: do we ever use horz & vert AND aspect ratio? doesn't one set calculate the other?
