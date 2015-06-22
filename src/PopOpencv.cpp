@@ -579,12 +579,18 @@ void TPopOpencv::OnCalibrateCamera(TJobAndChannel& JobAndChannel)
 		CameraOutput << Camera.mIntrinsicMatrix.rows[3] << Soy::lf;
 		
 		CameraOutput << "fov:" << Camera.mFov << Soy::lf;
+		CameraOutput << "lensoffset:" << Camera.mLensOffset << Soy::lf;
 		
 		CameraOutput << "cameraworldpos:";
 		CameraOutput << Camera.mCameraWorldPosition << Soy::lf;
 		
 		CameraOutput << "camerarotationeulardegrees:";
 		CameraOutput << Camera.mCameraRotationEularDeg << Soy::lf;
+		
+		CameraOutput << "distortionradtank5:";
+		CameraOutput << Camera.mRadialDistortion << ',';
+		CameraOutput << Camera.mTangentialDistortion << ',';
+		CameraOutput << Camera.mDistortionK5 << Soy::lf;
 		
 		Reply.mParams.AddDefaultParam( CameraOutput.str() );
 	}
