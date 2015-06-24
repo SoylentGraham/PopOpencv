@@ -141,7 +141,7 @@
 		FB79EB861A82C9A5003FF882 /* libopencv_video.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libopencv_video.dylib; path = lib/libopencv_video.dylib; sourceTree = "<group>"; };
 		FB79EB871A82C9A5003FF882 /* libopencv_videostab.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libopencv_videostab.dylib; path = lib/libopencv_videostab.dylib; sourceTree = "<group>"; };
 		FB8A05931A2E54730099596C /* PopOpencv */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = PopOpencv; sourceTree = BUILT_PRODUCTS_DIR; };
-		FB8A05A61A2E57700099596C /* PopApp.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = PopApp.xcconfig; path = ../NewChromantics/PopTrack/PopApp.xcconfig; sourceTree = POP_PATH; };
+		FB8A05A61A2E57700099596C /* PopApp.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = PopApp.xcconfig; sourceTree = POP_PATH; };
 		FB8A06231A2E5A7C0099596C /* SortArray.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SortArray.h; path = src/SortArray.h; sourceTree = "<group>"; };
 		FB8A06241A2E5A7C0099596C /* SoyApp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SoyApp.cpp; path = src/SoyApp.cpp; sourceTree = "<group>"; };
 		FB8A06251A2E5A7C0099596C /* SoyApp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SoyApp.h; path = src/SoyApp.h; sourceTree = "<group>"; };
@@ -407,7 +407,6 @@
 				FB8A06521A2E5A7C0099596C /* string.hpp */,
 			);
 			name = soylib;
-			path = ../NewChromantics/ofxSoylent;
 			sourceTree = SOY_PATH;
 		};
 		FB8A067B1A2E68C20099596C /* poplib */ = {
@@ -452,7 +451,6 @@
 				FB8A067F1A2E69340099596C /* SoyData.h */,
 			);
 			name = poplib;
-			path = ../NewChromantics/PopTrack;
 			sourceTree = POP_PATH;
 		};
 		FB8A06A91A2E6B040099596C /* Unittest++ */ = {
