@@ -673,8 +673,6 @@
 					"$(OPENCV_DIR)/include",
 				);
 				MTL_ENABLE_DEBUG_INFO = YES;
-				POP_DIR = ../NewChromantics/PopTrack/;
-				SOYLENT_DIR = ../NewChromantics/ofxSoylent/;
 			};
 			name = Debug;
 		};
@@ -708,8 +706,6 @@
 					"$(OPENCV_DIR)/include",
 				);
 				MTL_ENABLE_DEBUG_INFO = NO;
-				POP_DIR = ../NewChromantics/PopTrack/;
-				SOYLENT_DIR = ../NewChromantics/ofxSoylent/;
 			};
 			name = Release;
 		};
